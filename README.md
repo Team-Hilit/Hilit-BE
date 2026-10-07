@@ -18,7 +18,6 @@
 ![Redis](https://img.shields.io/badge/Redis-FF4438?style=flat-square&logo=redis&logoColor=white)
 ![AWS](https://img.shields.io/badge/AWS-232F3E?style=flat-square&logo=amazonwebservices&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat-square&logo=docker&logoColor=white)
-![Terraform](https://img.shields.io/badge/Terraform-844FBA?style=flat-square&logo=terraform&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-2088FF?style=flat-square&logo=githubactions&logoColor=white)
 
 </div>
@@ -42,7 +41,7 @@
 | **AI** | Spring AI — OpenAI(임베딩 · JD 추출 · 키워드 · TTS), Anthropic(면접 질문 생성 · 채점) |
 | **인증** | JWT(jjwt), 카카오 · 애플 소셜 로그인 |
 | **파일 처리** | PDFBox · Tika(PDF 텍스트 추출), Jsoup(JD 크롤링), ffmpeg(면접 영상 합성) |
-| **인프라** | AWS S3 · ECR · CloudWatch, k3s + ArgoCD(GitOps), Caddy(TLS · 리버스 프록시), Terraform |
+| **인프라** | AWS S3 · ECR · CloudWatch, k3s + ArgoCD(GitOps), Caddy(TLS · 리버스 프록시) |
 | **CI/CD** | GitHub Actions — 릴리즈 태그 발행 시 ECR 푸시 → GitOps(Hilit-GitOps) 이미지 태그 write-back → ArgoCD 배포 |
 
 ---
