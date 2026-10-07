@@ -18,17 +18,6 @@ build/
 .env.*
 !.env.example
 
-# Terraform
-**/.terraform/
-**/.terraform.lock.hcl
-**/*.tfstate
-**/*.tfstate.*
-terraform/envs/**/*.tfvars
-terraform/crash.log
-terraform/crash.*.log
-terraform/modules/app/lambda/*.zip
-terraform/modules/email/lambda/*.zip
-
 # OS
 .DS_Store
 
