@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.2.1](https://github.com/Team-Hilit/Hilit-BE/compare/v1.2.0...v1.2.1) (2026-10-07)
+
+
+### 🔧 Chore
+
+* common-docs 서브모듈을 shared-docs로 교체 ([1399733](https://github.com/Team-Hilit/Hilit-BE/commit/13997331dbbd4c6c4fd0c3ee8b54c98c1163e4c5))
+* common-docs 서브모듈을 shared-docs로 교체 ([fd62a6a](https://github.com/Team-Hilit/Hilit-BE/commit/fd62a6ab37fa354e72846257d2f0e6bebd313e1c))
+* 테라폼 관련 내용 제거 ([b43ad81](https://github.com/Team-Hilit/Hilit-BE/commit/b43ad81cea14a0d37f32ff1f5f105f5e5fa55d5e))
+* 테라폼 관련 내용 제거 ([a29bfde](https://github.com/Team-Hilit/Hilit-BE/commit/a29bfde88740f23042b3f99b689a5c2db3bb375e))
+
 ## [1.2.0](https://github.com/Team-Hilit/Hilit-BE/compare/v1.1.0...v1.2.0) (2026-09-04)
 
 
