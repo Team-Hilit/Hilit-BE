@@ -41,7 +41,7 @@ class PortfolioQueryService implements PortfolioStatusUseCase, PortfolioListUseC
         Portfolio portfolio = PortfolioAccessSupport.requireOwned(portfolioRepository, portfolioId, userId);
         Portfolio current = portfolioProcessingTimeoutHandler.failAndCleanup(portfolio);
 
-        return new PortfolioStatusResult(current.getId(), current.getStatus(), current.getMessage(), current.getFileName());
+        return new PortfolioStatusResult(current.getId(), current.getStatus(), current.getMessage(), current.getFileName(), current.getSummaryBullets());
     }
 
     @Override
@@ -85,7 +85,8 @@ class PortfolioQueryService implements PortfolioStatusUseCase, PortfolioListUseC
                 portfolio.getPageCount(),
                 portfolio.getStatus(),
                 portfolio.getUploadedAt(),
-                interviewSessionInProgressCheckUseCase.existsInProgress(portfolio.getId())
+                interviewSessionInProgressCheckUseCase.existsInProgress(portfolio.getId()),
+                portfolio.getSummaryBullets()
         );
     }
 }

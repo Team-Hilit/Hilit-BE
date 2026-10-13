@@ -27,6 +27,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -70,7 +71,7 @@ class InterviewSessionCreateValidatorTest {
 
     private void givenPortfolioStatus(PortfolioStatus status) {
         given(portfolioStatusUseCase.getStatus(userId, portfolioId))
-                .willReturn(new PortfolioStatusResult(portfolioId, status, "메시지", "resume.pdf"));
+                .willReturn(new PortfolioStatusResult(portfolioId, status, "메시지", "resume.pdf", List.of()));
     }
 
     private void givenRegisteredProfile(JobRole jobRole, Integer careerYears) {

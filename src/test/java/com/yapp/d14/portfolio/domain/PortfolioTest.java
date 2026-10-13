@@ -3,6 +3,7 @@ package com.yapp.d14.portfolio.domain;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -65,7 +66,7 @@ class PortfolioTest {
         Portfolio ready = Portfolio.of(
                 UUID.randomUUID(), UUID.randomUUID(), "resume.pdf", 1024, 5, "users/x/portfolios/x/x.pdf",
                 PortfolioStatus.READY, "완료", LocalDateTime.now(), LocalDateTime.now(),
-                false, false, null
+                false, false, null, List.of()
         );
 
         ready.softDelete();
@@ -79,7 +80,7 @@ class PortfolioTest {
         Portfolio ready = Portfolio.of(
                 UUID.randomUUID(), UUID.randomUUID(), "resume.pdf", 1024, 5, "users/x/portfolios/x/x.pdf",
                 PortfolioStatus.READY, "완료", LocalDateTime.now(), LocalDateTime.now(),
-                false, false, null
+                false, false, null, List.of()
         );
 
         assertThat(ready.countsTowardDeletionLimit()).isTrue();
@@ -120,7 +121,7 @@ class PortfolioTest {
         Portfolio ready = Portfolio.of(
                 UUID.randomUUID(), UUID.randomUUID(), "resume.pdf", 1024, 5, "users/x/portfolios/x/x.pdf",
                 PortfolioStatus.READY, "완료", LocalDateTime.now().minusSeconds(100), LocalDateTime.now(),
-                false, false, null
+                false, false, null, List.of()
         );
 
         boolean timedOut = ready.failIfProcessingTimedOut();
@@ -129,11 +130,33 @@ class PortfolioTest {
         assertThat(ready.getStatus()).isEqualTo(PortfolioStatus.READY);
     }
 
+    @Test
+    void 생성_직후에는_요약_불릿이_빈_리스트다() {
+        assertThat(portfolio.getSummaryBullets()).isEmpty();
+    }
+
+    @Test
+    void updateSummaryBullets로_상태와_무관하게_요약_불릿을_설정할_수_있다() {
+        portfolio.updateSummaryBullets(List.of("불릿1", "불릿2"));
+
+        assertThat(portfolio.getSummaryBullets()).containsExactly("불릿1", "불릿2");
+        assertThat(portfolio.getStatus()).isEqualTo(PortfolioStatus.PROCESSING);
+    }
+
+    @Test
+    void updateSummaryBullets에_null을_전달하면_빈_리스트가_된다() {
+        portfolio.updateSummaryBullets(List.of("불릿1"));
+
+        portfolio.updateSummaryBullets(null);
+
+        assertThat(portfolio.getSummaryBullets()).isEmpty();
+    }
+
     private Portfolio processingPortfolioCreatedAt(LocalDateTime createdAt) {
         return Portfolio.of(
                 UUID.randomUUID(), UUID.randomUUID(), "resume.pdf", 1024, 5, "users/x/portfolios/x/x.pdf",
                 PortfolioStatus.PROCESSING, "포트폴리오를 분석하고 있어요.", createdAt, null,
-                false, false, null
+                false, false, null, List.of()
         );
     }
 }

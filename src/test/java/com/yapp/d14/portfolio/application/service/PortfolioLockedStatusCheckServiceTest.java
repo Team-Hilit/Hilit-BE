@@ -15,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -40,7 +41,7 @@ class PortfolioLockedStatusCheckServiceTest {
     private Portfolio portfolioWithStatus(PortfolioStatus status) {
         return Portfolio.of(
                 portfolioId, userId, "resume.pdf", 1024, 5, "users/x/portfolios/x.pdf",
-                status, null, LocalDateTime.now(), LocalDateTime.now(), false, false, null
+                status, null, LocalDateTime.now(), LocalDateTime.now(), false, false, null, List.of()
         );
     }
 

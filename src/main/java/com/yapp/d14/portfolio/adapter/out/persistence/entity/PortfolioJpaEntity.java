@@ -10,8 +10,12 @@ import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -56,6 +60,10 @@ public class PortfolioJpaEntity {
 
     private LocalDateTime deletedAt;
 
+    @JdbcTypeCode(SqlTypes.ARRAY)
+    @Column(name = "summary_bullets", columnDefinition = "text[]")
+    private List<String> summaryBullets = new ArrayList<>();
+
     public static PortfolioJpaEntity from(Portfolio portfolio) {
         PortfolioJpaEntity entity = new PortfolioJpaEntity();
         entity.id = portfolio.getId();
@@ -71,6 +79,7 @@ public class PortfolioJpaEntity {
         entity.replacement = portfolio.isReplacement();
         entity.deleted = portfolio.isDeleted();
         entity.deletedAt = portfolio.getDeletedAt();
+        entity.summaryBullets = new ArrayList<>(portfolio.getSummaryBullets());
         return entity;
     }
 
@@ -88,7 +97,8 @@ public class PortfolioJpaEntity {
                 uploadedAt,
                 replacement,
                 deleted,
-                deletedAt
+                deletedAt,
+                summaryBullets
         );
     }
 }

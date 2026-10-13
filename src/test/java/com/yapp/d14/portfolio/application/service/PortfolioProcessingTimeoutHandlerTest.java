@@ -12,6 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -112,7 +113,7 @@ class PortfolioProcessingTimeoutHandlerTest {
         return Portfolio.of(
                 UUID.randomUUID(), UUID.randomUUID(), "resume.pdf", 1024, 5, "users/x/portfolios/x.pdf",
                 PortfolioStatus.PROCESSING, "포트폴리오를 분석하고 있어요.", createdAt, null,
-                false, false, null
+                false, false, null, List.of()
         );
     }
 
@@ -120,7 +121,7 @@ class PortfolioProcessingTimeoutHandlerTest {
         return Portfolio.of(
                 portfolioId, UUID.randomUUID(), "resume.pdf", 1024, 5, "users/x/portfolios/x.pdf",
                 PortfolioStatus.READY, "포트폴리오 처리가 완료되었습니다.", LocalDateTime.now().minusSeconds(20),
-                LocalDateTime.now(), false, false, null
+                LocalDateTime.now(), false, false, null, List.of()
         );
     }
 }

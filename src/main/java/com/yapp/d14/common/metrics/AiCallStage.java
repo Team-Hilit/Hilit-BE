@@ -13,6 +13,7 @@ public enum AiCallStage {
     REPORT_HEADLINE("anthropic", "report_headline"),
     JD_KEYWORD("openai", "jd_keyword"),
     JD_CONTENT("openai", "jd_content"),
+    PORTFOLIO_SUMMARY("openai", "portfolio_summary"),
     STT("openai", "stt"),
     TTS("openai", "tts"),
     TTS_STREAM("openai", "tts_stream");
