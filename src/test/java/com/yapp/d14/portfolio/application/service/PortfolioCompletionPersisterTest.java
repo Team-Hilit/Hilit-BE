@@ -10,6 +10,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,7 +34,7 @@ class PortfolioCompletionPersisterTest {
         Portfolio processing = portfolio(PortfolioStatus.PROCESSING, false);
         given(portfolioRepository.findByIdForUpdate(processing.getId())).willReturn(Optional.of(processing));
 
-        boolean completed = portfolioCompletionPersister.completeIfStillProcessing(processing.getId());
+        boolean completed = portfolioCompletionPersister.completeIfStillProcessing(processing.getId(), List.of());
 
         assertThat(completed).isTrue();
         assertThat(processing.getStatus()).isEqualTo(PortfolioStatus.READY);
@@ -42,14 +43,28 @@ class PortfolioCompletionPersisterTest {
     }
 
     @Test
+    void 여전히_PROCESSING이면_READY_전환과_함께_요약_불릿도_저장한다() {
+        Portfolio processing = portfolio(PortfolioStatus.PROCESSING, false);
+        given(portfolioRepository.findByIdForUpdate(processing.getId())).willReturn(Optional.of(processing));
+
+        boolean completed = portfolioCompletionPersister.completeIfStillProcessing(
+                processing.getId(), List.of("불릿1", "불릿2"));
+
+        assertThat(completed).isTrue();
+        assertThat(processing.getSummaryBullets()).containsExactly("불릿1", "불릿2");
+        verify(portfolioRepository).save(processing);
+    }
+
+    @Test
     void 타임아웃으로_이미_실패_처리됐으면_덮어쓰지_않는다() {
         Portfolio failed = portfolio(PortfolioStatus.FAILED_SYSTEM, false);
         given(portfolioRepository.findByIdForUpdate(failed.getId())).willReturn(Optional.of(failed));
 
-        boolean completed = portfolioCompletionPersister.completeIfStillProcessing(failed.getId());
+        boolean completed = portfolioCompletionPersister.completeIfStillProcessing(failed.getId(), List.of("불릿1"));
 
         assertThat(completed).isFalse();
         assertThat(failed.getStatus()).isEqualTo(PortfolioStatus.FAILED_SYSTEM);
+        assertThat(failed.getSummaryBullets()).isEmpty();
         verify(portfolioRepository, never()).save(any());
     }
 
@@ -58,7 +73,7 @@ class PortfolioCompletionPersisterTest {
         Portfolio cancelled = portfolio(PortfolioStatus.CANCELLED, true);
         given(portfolioRepository.findByIdForUpdate(cancelled.getId())).willReturn(Optional.of(cancelled));
 
-        boolean completed = portfolioCompletionPersister.completeIfStillProcessing(cancelled.getId());
+        boolean completed = portfolioCompletionPersister.completeIfStillProcessing(cancelled.getId(), List.of());
 
         assertThat(completed).isFalse();
         verify(portfolioRepository, never()).save(any());
@@ -69,7 +84,7 @@ class PortfolioCompletionPersisterTest {
         UUID portfolioId = UUID.randomUUID();
         given(portfolioRepository.findByIdForUpdate(portfolioId)).willReturn(Optional.empty());
 
-        boolean completed = portfolioCompletionPersister.completeIfStillProcessing(portfolioId);
+        boolean completed = portfolioCompletionPersister.completeIfStillProcessing(portfolioId, List.of());
 
         assertThat(completed).isFalse();
         verify(portfolioRepository, never()).save(any());
@@ -79,7 +94,7 @@ class PortfolioCompletionPersisterTest {
         return Portfolio.of(
                 UUID.randomUUID(), UUID.randomUUID(), "resume.pdf", 1024, 5, "users/x/portfolios/x.pdf",
                 status, "message", LocalDateTime.now().minusSeconds(20), null,
-                false, deleted, deleted ? LocalDateTime.now() : null
+                false, deleted, deleted ? LocalDateTime.now() : null, List.of()
         );
     }
 }

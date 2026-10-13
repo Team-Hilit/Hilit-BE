@@ -2,6 +2,7 @@ package com.yapp.d14.portfolio.application.service;
 
 import com.yapp.d14.portfolio.application.port.in.PortfolioProcessUseCase;
 import com.yapp.d14.portfolio.application.port.out.PdfTextExtractor;
+import com.yapp.d14.portfolio.application.port.out.PortfolioContentSummarizer;
 import com.yapp.d14.portfolio.application.port.out.PortfolioEmbeddingStore;
 import com.yapp.d14.portfolio.application.port.out.PortfolioFileUploader;
 import com.yapp.d14.portfolio.application.port.out.PortfolioRepository;
@@ -13,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Slf4j
@@ -27,6 +29,7 @@ class PortfolioProcessService implements PortfolioProcessUseCase {
     private final PortfolioFileUploader portfolioFileUploader;
     private final PdfTextExtractor pdfTextExtractor;
     private final PortfolioEmbeddingStore portfolioEmbeddingStore;
+    private final PortfolioContentSummarizer portfolioContentSummarizer;
     private final PortfolioCompletionPersister portfolioCompletionPersister;
 
     @Override
@@ -51,7 +54,9 @@ class PortfolioProcessService implements PortfolioProcessUseCase {
             return;
         }
 
-        if (!portfolioCompletionPersister.completeIfStillProcessing(portfolio.getId())) {
+        List<String> summaryBullets = generateSummary(portfolio, maskedText);
+
+        if (!portfolioCompletionPersister.completeIfStillProcessing(portfolio.getId(), summaryBullets)) {
             log.warn("[PORTFOLIO PROCESS] 처리 시간 초과로 이미 종료됨, 완료 처리를 생략하고 리소스를 정리함: portfolioId={}", portfolio.getId());
             portfolioEmbeddingStore.deleteByPortfolioId(portfolio.getId());
             portfolioFileUploader.delete(portfolio.getS3Key());
@@ -132,6 +137,17 @@ class PortfolioProcessService implements PortfolioProcessUseCase {
         portfolioEmbeddingStore.deleteByPortfolioId(portfolio.getId());
         portfolioFileUploader.delete(portfolio.getS3Key());
         return false;
+    }
+
+    // 요약 생성은 best-effort다 — 실패해도 READY 전환을 막지 않고, 재시도도 하지 않는다(HLT-11).
+    private List<String> generateSummary(Portfolio portfolio, String maskedText) {
+        try {
+            List<String> bullets = portfolioContentSummarizer.summarize(portfolio.getId(), maskedText);
+            return bullets == null ? List.of() : bullets;
+        } catch (Exception e) {
+            log.warn("[PORTFOLIO PROCESS] 콘텐츠 요약 생성 실패, 요약 없이 완료 처리함: portfolioId={}", portfolio.getId(), e);
+            return List.of();
+        }
     }
 
     private void failFileAndCleanupS3(Portfolio portfolio, String message) {

@@ -1,6 +1,7 @@
 package com.yapp.d14.portfolio.application.service;
 
 import com.yapp.d14.portfolio.application.port.out.PdfTextExtractor;
+import com.yapp.d14.portfolio.application.port.out.PortfolioContentSummarizer;
 import com.yapp.d14.portfolio.application.port.out.PortfolioEmbeddingStore;
 import com.yapp.d14.portfolio.application.port.out.PortfolioFileUploader;
 import com.yapp.d14.portfolio.application.port.out.PortfolioRepository;
@@ -17,10 +18,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.BDDMockito.given;
@@ -48,6 +51,9 @@ class PortfolioProcessServiceTest {
     private PortfolioEmbeddingStore portfolioEmbeddingStore;
 
     @Mock
+    private PortfolioContentSummarizer portfolioContentSummarizer;
+
+    @Mock
     private PortfolioCompletionPersister portfolioCompletionPersister;
 
     @InjectMocks
@@ -66,7 +72,9 @@ class PortfolioProcessServiceTest {
                 "users/%s/portfolios/%s/test.pdf".formatted(userId, UUID.randomUUID()), false
         );
         // 완료 전환은 락을 잡는 PortfolioCompletionPersister가 전담한다. 기본은 "아직 PROCESSING이라 완료 성공".
-        lenient().when(portfolioCompletionPersister.completeIfStillProcessing(any())).thenReturn(true);
+        lenient().when(portfolioCompletionPersister.completeIfStillProcessing(any(), any())).thenReturn(true);
+        // 요약 생성은 기본적으로 빈 리스트를 반환한다고 가정 — 요약 자체를 검증하는 테스트에서만 재정의한다.
+        lenient().when(portfolioContentSummarizer.summarize(any(), any())).thenReturn(List.of());
     }
 
     @Test
@@ -90,7 +98,7 @@ class PortfolioProcessServiceTest {
 
         portfolioProcessService.process(userId, portfolio.getId(), fileContent);
 
-        verify(portfolioCompletionPersister).completeIfStillProcessing(portfolio.getId());
+        verify(portfolioCompletionPersister).completeIfStillProcessing(portfolio.getId(), List.of());
         verify(portfolioFileUploader, times(2)).upload(any(), any(), any());
     }
 
@@ -171,7 +179,7 @@ class PortfolioProcessServiceTest {
 
         portfolioProcessService.process(userId, portfolio.getId(), fileContent);
 
-        verify(portfolioCompletionPersister).completeIfStillProcessing(portfolio.getId());
+        verify(portfolioCompletionPersister).completeIfStillProcessing(portfolio.getId(), List.of());
         verify(portfolioEmbeddingStore, times(2)).save(any(), any(), any(), any());
     }
 
@@ -218,7 +226,7 @@ class PortfolioProcessServiceTest {
         portfolioProcessService.process(userId, portfolio.getId(), fileContent);
 
         verify(portfolioEmbeddingStore).save(portfolio.getId(), userId, portfolio.getFileName(), extractedText);
-        verify(portfolioCompletionPersister).completeIfStillProcessing(portfolio.getId());
+        verify(portfolioCompletionPersister).completeIfStillProcessing(portfolio.getId(), List.of());
         verify(portfolioFileUploader, never()).delete(any());
         verify(portfolioEmbeddingStore, never()).deleteByPortfolioId(any());
     }
@@ -244,7 +252,7 @@ class PortfolioProcessServiceTest {
     void 완료_전환이_거부되면_READY로_덮어쓰지_않고_S3와_임베딩을_정리한다() {
         given(portfolioRepository.findById(portfolio.getId())).willReturn(Optional.of(portfolio));
         given(pdfTextExtractor.extractText(fileContent)).willReturn(VALID_EXTRACTED_TEXT);
-        given(portfolioCompletionPersister.completeIfStillProcessing(portfolio.getId())).willReturn(false);
+        given(portfolioCompletionPersister.completeIfStillProcessing(portfolio.getId(), List.of())).willReturn(false);
 
         portfolioProcessService.process(userId, portfolio.getId(), fileContent);
 
@@ -254,12 +262,46 @@ class PortfolioProcessServiceTest {
         verify(portfolioFileUploader).delete(portfolio.getS3Key());
     }
 
+    @Test
+    void 콘텐츠_요약_생성에_성공하면_생성된_불릿과_함께_완료_전환을_요청한다() {
+        given(portfolioRepository.findById(portfolio.getId())).willReturn(Optional.of(portfolio));
+        given(pdfTextExtractor.extractText(fileContent)).willReturn(VALID_EXTRACTED_TEXT);
+        given(portfolioContentSummarizer.summarize(any(), any())).willReturn(List.of("불릿1"));
+
+        portfolioProcessService.process(userId, portfolio.getId(), fileContent);
+
+        verify(portfolioCompletionPersister).completeIfStillProcessing(portfolio.getId(), List.of("불릿1"));
+    }
+
+    @Test
+    void 콘텐츠_요약_생성이_예외를_던져도_READY_전환은_그대로_진행된다() {
+        given(portfolioRepository.findById(portfolio.getId())).willReturn(Optional.of(portfolio));
+        given(pdfTextExtractor.extractText(fileContent)).willReturn(VALID_EXTRACTED_TEXT);
+        given(portfolioContentSummarizer.summarize(any(), any())).willThrow(new RuntimeException("OpenAI 장애"));
+
+        assertThatCode(() -> portfolioProcessService.process(userId, portfolio.getId(), fileContent))
+                .doesNotThrowAnyException();
+
+        verify(portfolioCompletionPersister).completeIfStillProcessing(portfolio.getId(), List.of());
+    }
+
+    @Test
+    void 콘텐츠_요약_결과가_null이면_빈_리스트로_완료_전환을_요청한다() {
+        given(portfolioRepository.findById(portfolio.getId())).willReturn(Optional.of(portfolio));
+        given(pdfTextExtractor.extractText(fileContent)).willReturn(VALID_EXTRACTED_TEXT);
+        given(portfolioContentSummarizer.summarize(any(), any())).willReturn(null);
+
+        portfolioProcessService.process(userId, portfolio.getId(), fileContent);
+
+        verify(portfolioCompletionPersister).completeIfStillProcessing(portfolio.getId(), List.of());
+    }
+
     private Portfolio failedSystemCopyOf(Portfolio original) {
         return Portfolio.of(
                 original.getId(), original.getUserId(), original.getFileName(), original.getFileSize(),
                 original.getPageCount(), original.getS3Key(), PortfolioStatus.FAILED_SYSTEM,
                 "처리 시간이 초과되었어요. 다시 시도해 주세요.", original.getCreatedAt(), null,
-                original.isReplacement(), false, null
+                original.isReplacement(), false, null, original.getSummaryBullets()
         );
     }
 

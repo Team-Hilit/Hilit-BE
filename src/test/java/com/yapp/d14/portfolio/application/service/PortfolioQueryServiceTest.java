@@ -208,11 +208,32 @@ class PortfolioQueryServiceTest {
         verify(portfolioProcessingTimeoutHandler).failAndCleanup(stale);
     }
 
+    @Test
+    void 목록_조회시_콘텐츠_요약_불릿을_함께_내려준다() {
+        portfolio.updateSummaryBullets(List.of("불릿1", "불릿2"));
+        given(portfolioRepository.findAllActiveByUserId(userId)).willReturn(List.of(portfolio));
+        given(portfolioRepository.existsReplacementSince(any(), any())).willReturn(false);
+
+        PortfolioListResult result = portfolioQueryService.getList(userId);
+
+        assertThat(result.portfolios().get(0).contentSummaryBullets()).containsExactly("불릿1", "불릿2");
+    }
+
+    @Test
+    void 상태_조회시_콘텐츠_요약_불릿을_함께_내려준다() {
+        portfolio.updateSummaryBullets(List.of("불릿1", "불릿2"));
+        given(portfolioRepository.findById(portfolio.getId())).willReturn(Optional.of(portfolio));
+
+        var result = portfolioQueryService.getStatus(portfolio.getUserId(), portfolio.getId());
+
+        assertThat(result.contentSummaryBullets()).containsExactly("불릿1", "불릿2");
+    }
+
     private Portfolio failedPortfolio() {
         return Portfolio.of(
                 UUID.randomUUID(), userId, "broken.pdf", 1024, 5, "users/x/portfolios/x/x.pdf",
                 PortfolioStatus.FAILED_FILE, "파일이 손상되었어요.", LocalDateTime.now().minusMinutes(10), null,
-                false, false, null
+                false, false, null, List.of()
         );
     }
 
@@ -220,7 +241,7 @@ class PortfolioQueryServiceTest {
         return Portfolio.of(
                 UUID.randomUUID(), userId, "broken.pdf", 1024, 5, "users/x/portfolios/x/x.pdf",
                 PortfolioStatus.FAILED_FILE, "파일이 손상되었어요.", LocalDateTime.now().minusMinutes(10), null,
-                false, true, LocalDateTime.now()
+                false, true, LocalDateTime.now(), List.of()
         );
     }
 
@@ -228,7 +249,7 @@ class PortfolioQueryServiceTest {
         return Portfolio.of(
                 UUID.randomUUID(), userId, "resume.pdf", 1024, 5, "users/x/portfolios/x/x.pdf",
                 PortfolioStatus.READY, "포트폴리오 처리가 완료되었습니다.", LocalDateTime.now().minusMinutes(5),
-                LocalDateTime.now().minusMinutes(4), false, true, LocalDateTime.now()
+                LocalDateTime.now().minusMinutes(4), false, true, LocalDateTime.now(), List.of()
         );
     }
 
@@ -237,7 +258,7 @@ class PortfolioQueryServiceTest {
         return Portfolio.of(
                 UUID.randomUUID(), ownerId, "resume.pdf", 1024, 5, "users/x/portfolios/x/x.pdf",
                 PortfolioStatus.PROCESSING, "포트폴리오를 분석하고 있어요.", createdAt, null,
-                false, false, null
+                false, false, null, List.of()
         );
     }
 }

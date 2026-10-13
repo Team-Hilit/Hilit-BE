@@ -19,6 +19,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -66,7 +67,7 @@ class PortfolioDeleteServiceTest {
                 "users/%s/portfolios/%s/test.pdf".formatted(userId, UUID.randomUUID()),
                 status, "메시지", now,
                 status == PortfolioStatus.READY ? now : null,
-                false, false, null
+                false, false, null, List.of()
         );
     }
 

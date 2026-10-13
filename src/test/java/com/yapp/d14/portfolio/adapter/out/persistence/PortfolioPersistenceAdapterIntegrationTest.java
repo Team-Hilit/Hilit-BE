@@ -13,6 +13,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -54,7 +55,7 @@ class PortfolioPersistenceAdapterIntegrationTest {
                 UUID.randomUUID(), userId, "resume.pdf", 100L, 5, "s3-key",
                 PortfolioStatus.READY, "완료",
                 monthStart.minusHours(1), monthStart.plusMinutes(30),
-                true, false, null
+                true, false, null, List.of()
         );
         portfolioRepository.save(monthBoundaryReplacement);
 
@@ -71,7 +72,7 @@ class PortfolioPersistenceAdapterIntegrationTest {
                 UUID.randomUUID(), userId, "resume.pdf", 100L, 5, "s3-key",
                 PortfolioStatus.READY, "완료",
                 monthStart.minusDays(10), monthStart.minusDays(10),
-                false, true, monthStart.minusHours(1)
+                false, true, monthStart.minusHours(1), List.of()
         );
         portfolioRepository.save(deletedBeforeMonth);
 
@@ -81,7 +82,7 @@ class PortfolioPersistenceAdapterIntegrationTest {
                 UUID.randomUUID(), userId, "resume2.pdf", 100L, 5, "s3-key-2",
                 PortfolioStatus.READY, "완료",
                 monthStart.plusDays(1), monthStart.plusDays(1),
-                false, true, monthStart.plusDays(2)
+                false, true, monthStart.plusDays(2), List.of()
         );
         portfolioRepository.save(deletedInMonth);
 
@@ -97,7 +98,7 @@ class PortfolioPersistenceAdapterIntegrationTest {
                 UUID.randomUUID(), userId, "resume.pdf", 100L, 5, "s3-key",
                 status, "미완료",
                 monthStart.plusDays(1), null,
-                false, true, monthStart.plusDays(1)
+                false, true, monthStart.plusDays(1), List.of()
         );
         portfolioRepository.save(notCompleted);
 
@@ -112,7 +113,7 @@ class PortfolioPersistenceAdapterIntegrationTest {
                 UUID.randomUUID(), userId, "resume.pdf", 100L, 5, "s3-key",
                 status, "미완료",
                 LocalDateTime.now(), null,
-                false, status != PortfolioStatus.PROCESSING, LocalDateTime.now()
+                false, status != PortfolioStatus.PROCESSING, LocalDateTime.now(), List.of()
         );
         portfolioRepository.save(notCompleted);
 
@@ -126,10 +127,26 @@ class PortfolioPersistenceAdapterIntegrationTest {
                 UUID.randomUUID(), userId, "resume.pdf", 100L, 5, "s3-key",
                 PortfolioStatus.READY, "완료",
                 LocalDateTime.now(), LocalDateTime.now(),
-                false, true, LocalDateTime.now()
+                false, true, LocalDateTime.now(), List.of()
         );
         portfolioRepository.save(deletedReady);
 
         assertThat(portfolioRepository.existsCompletedByUserId(userId)).isTrue();
+    }
+
+    @Test
+    void 요약_불릿을_저장하고_조회하면_순서와_개수가_보존된다() {
+        userId = UUID.randomUUID();
+        Portfolio ready = Portfolio.of(
+                UUID.randomUUID(), userId, "resume.pdf", 100L, 5, "s3-key",
+                PortfolioStatus.READY, "완료",
+                LocalDateTime.now(), LocalDateTime.now(),
+                false, false, null, List.of("첫째", "둘째", "셋째")
+        );
+        portfolioRepository.save(ready);
+
+        Portfolio found = portfolioRepository.findById(ready.getId()).orElseThrow();
+
+        assertThat(found.getSummaryBullets()).containsExactly("첫째", "둘째", "셋째");
     }
 }

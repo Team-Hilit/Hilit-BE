@@ -122,7 +122,9 @@ public interface PortfolioControllerDocs {
             summary = "포트폴리오 처리 상태 조회",
             description = "포트폴리오 등록 후 처리 상태를 폴링으로 조회합니다.\n\n" +
                     "**인증**: Access Token 필요 (Authorization: Bearer {accessToken})\n\n" +
-                    "- 3~5초 간격으로 폴링하며 `PROCESSING`(계속) / `READY`(완료) / `FAILED_FILE`·`FAILED_SYSTEM`(실패)을 응답합니다."
+                    "- 3~5초 간격으로 폴링하며 `PROCESSING`(계속) / `READY`(완료) / `FAILED_FILE`·`FAILED_SYSTEM`(실패)을 응답합니다.\n\n" +
+                    "- `contentSummaryBullets`는 AI가 생성한 포트폴리오 콘텐츠 요약 불릿 목록(중립적 사실 서술형, 가변 개수)입니다. " +
+                    "요약 생성이 실패해도 `READY` 전환에는 영향을 주지 않으며, 이 경우 빈 배열로 내려갑니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -138,7 +140,8 @@ public interface PortfolioControllerDocs {
                                               "data": {
                                                 "portfolioId": "b1f2c3d4-0000-0000-0000-000000000001",
                                                 "status": "PROCESSING",
-                                                "message": "포트폴리오를 분석하고 있어요."
+                                                "message": "포트폴리오를 분석하고 있어요.",
+                                                "contentSummaryBullets": []
                                               }
                                             }
                                             """),
@@ -148,7 +151,12 @@ public interface PortfolioControllerDocs {
                                               "data": {
                                                 "portfolioId": "b1f2c3d4-0000-0000-0000-000000000001",
                                                 "status": "READY",
-                                                "message": "포트폴리오 처리가 완료되었습니다."
+                                                "message": "포트폴리오 처리가 완료되었습니다.",
+                                                "contentSummaryBullets": [
+                                                  "백엔드 API 서버 설계 및 구현 경험",
+                                                  "Kafka를 활용한 비동기 메시징 처리 수행",
+                                                  "AWS 인프라 환경에서 서비스 배포 및 운영 참여"
+                                                ]
                                               }
                                             }
                                             """),
@@ -158,7 +166,8 @@ public interface PortfolioControllerDocs {
                                               "data": {
                                                 "portfolioId": "b1f2c3d4-0000-0000-0000-000000000001",
                                                 "status": "FAILED_FILE",
-                                                "message": "파일이 손상되었거나 암호로 보호되어 있어요. 다시 업로드해 주세요."
+                                                "message": "파일이 손상되었거나 암호로 보호되어 있어요. 다시 업로드해 주세요.",
+                                                "contentSummaryBullets": []
                                               }
                                             }
                                             """),
@@ -168,7 +177,8 @@ public interface PortfolioControllerDocs {
                                               "data": {
                                                 "portfolioId": "b1f2c3d4-0000-0000-0000-000000000001",
                                                 "status": "FAILED_FILE",
-                                                "message": "텍스트를 인식할 수 없어요. 스캔본이 아닌 PDF 파일로 다시 업로드해 주세요."
+                                                "message": "텍스트를 인식할 수 없어요. 스캔본이 아닌 PDF 파일로 다시 업로드해 주세요.",
+                                                "contentSummaryBullets": []
                                               }
                                             }
                                             """),
@@ -178,7 +188,8 @@ public interface PortfolioControllerDocs {
                                               "data": {
                                                 "portfolioId": "b1f2c3d4-0000-0000-0000-000000000001",
                                                 "status": "FAILED_SYSTEM",
-                                                "message": "파일 업로드에 실패했어요. 잠시 후 다시 시도해 주세요."
+                                                "message": "파일 업로드에 실패했어요. 잠시 후 다시 시도해 주세요.",
+                                                "contentSummaryBullets": []
                                               }
                                             }
                                             """),
@@ -188,7 +199,8 @@ public interface PortfolioControllerDocs {
                                               "data": {
                                                 "portfolioId": "b1f2c3d4-0000-0000-0000-000000000001",
                                                 "status": "FAILED_SYSTEM",
-                                                "message": "포트폴리오 분석에 실패했어요. 잠시 후 다시 시도해 주세요."
+                                                "message": "포트폴리오 분석에 실패했어요. 잠시 후 다시 시도해 주세요.",
+                                                "contentSummaryBullets": []
                                               }
                                             }
                                             """),
@@ -198,7 +210,8 @@ public interface PortfolioControllerDocs {
                                               "data": {
                                                 "portfolioId": "b1f2c3d4-0000-0000-0000-000000000001",
                                                 "status": "FAILED_SYSTEM",
-                                                "message": "처리 시간이 초과되었어요. 다시 시도해 주세요."
+                                                "message": "처리 시간이 초과되었어요. 다시 시도해 주세요.",
+                                                "contentSummaryBullets": []
                                               }
                                             }
                                             """),
@@ -208,7 +221,8 @@ public interface PortfolioControllerDocs {
                                               "data": {
                                                 "portfolioId": "b1f2c3d4-0000-0000-0000-000000000001",
                                                 "status": "FAILED_SYSTEM",
-                                                "message": "현재 요청이 많아 처리가 지연되고 있어요. 잠시 후 다시 시도해 주세요."
+                                                "message": "현재 요청이 많아 처리가 지연되고 있어요. 잠시 후 다시 시도해 주세요.",
+                                                "contentSummaryBullets": []
                                               }
                                             }
                                             """)
@@ -265,7 +279,9 @@ public interface PortfolioControllerDocs {
                     "`PORTFOLIO_DELETE_BLOCKED_BY_INTERVIEW`로 거부됩니다. `interviewInProgress=true`면 `deleteAvailable`이 `true`여도 " +
                     "실제로는 삭제가 불가능하므로, 삭제 버튼 활성화 여부는 반드시 `interviewInProgress`를 먼저 확인한 뒤 `deleteAvailable`을 봐야 합니다. " +
                     "`interviewInProgress`와 `deleteAvailable`을 함께 보면 " +
-                    "삭제 불가 사유(면접 진행 중 vs 이번 달 삭제 기회 소진)를 구분해 안내 메시지를 다르게 보여줄 수 있습니다."
+                    "삭제 불가 사유(면접 진행 중 vs 이번 달 삭제 기회 소진)를 구분해 안내 메시지를 다르게 보여줄 수 있습니다.\n\n" +
+                    "- `portfolios[].contentSummaryBullets`는 AI가 생성한 포트폴리오 콘텐츠 요약 불릿 목록(중립적 사실 서술형, 가변 개수)입니다. " +
+                    "요약 생성이 실패했거나 아직 `READY`가 아니면 빈 배열입니다."
     )
     @ApiResponses({
             @io.swagger.v3.oas.annotations.responses.ApiResponse(
@@ -302,7 +318,8 @@ public interface PortfolioControllerDocs {
                                                   "pageCount": 12,
                                                   "status": "PROCESSING",
                                                   "uploadedAt": null,
-                                                  "interviewInProgress": false
+                                                  "interviewInProgress": false,
+                                                  "contentSummaryBullets": []
                                                 }]
                                               }
                                             }
@@ -322,7 +339,12 @@ public interface PortfolioControllerDocs {
                                                   "pageCount": 12,
                                                   "status": "READY",
                                                   "uploadedAt": "2026-07-01T10:00:00",
-                                                  "interviewInProgress": false
+                                                  "interviewInProgress": false,
+                                                  "contentSummaryBullets": [
+                                                    "백엔드 API 서버 설계 및 구현 경험",
+                                                    "Kafka를 활용한 비동기 메시징 처리 수행",
+                                                    "AWS 인프라 환경에서 서비스 배포 및 운영 참여"
+                                                  ]
                                                 }]
                                               }
                                             }
@@ -342,7 +364,8 @@ public interface PortfolioControllerDocs {
                                                   "pageCount": 12,
                                                   "status": "READY",
                                                   "uploadedAt": "2026-07-15T10:00:00",
-                                                  "interviewInProgress": false
+                                                  "interviewInProgress": false,
+                                                  "contentSummaryBullets": []
                                                 }]
                                               }
                                             }
@@ -362,7 +385,8 @@ public interface PortfolioControllerDocs {
                                                   "pageCount": 12,
                                                   "status": "READY",
                                                   "uploadedAt": "2026-07-22T10:00:00",
-                                                  "interviewInProgress": false
+                                                  "interviewInProgress": false,
+                                                  "contentSummaryBullets": []
                                                 }]
                                               }
                                             }
@@ -382,7 +406,8 @@ public interface PortfolioControllerDocs {
                                                   "pageCount": 12,
                                                   "status": "READY",
                                                   "uploadedAt": "2026-07-20T10:00:00",
-                                                  "interviewInProgress": true
+                                                  "interviewInProgress": true,
+                                                  "contentSummaryBullets": []
                                                 }]
                                               }
                                             }
@@ -402,7 +427,8 @@ public interface PortfolioControllerDocs {
                                                   "pageCount": 12,
                                                   "status": "FAILED_FILE",
                                                   "uploadedAt": null,
-                                                  "interviewInProgress": false
+                                                  "interviewInProgress": false,
+                                                  "contentSummaryBullets": []
                                                 }]
                                               }
                                             }

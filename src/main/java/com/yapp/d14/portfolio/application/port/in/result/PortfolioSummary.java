@@ -3,6 +3,7 @@ package com.yapp.d14.portfolio.application.port.in.result;
 import com.yapp.d14.portfolio.domain.PortfolioStatus;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 public record PortfolioSummary(
@@ -12,6 +13,7 @@ public record PortfolioSummary(
         Integer pageCount,
         PortfolioStatus status,
         LocalDateTime uploadedAt,
-        boolean interviewInProgress
+        boolean interviewInProgress,
+        List<String> contentSummaryBullets
 ) {
 }

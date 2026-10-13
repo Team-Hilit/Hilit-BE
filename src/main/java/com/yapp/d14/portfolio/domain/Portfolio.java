@@ -6,6 +6,7 @@ import lombok.Getter;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -27,6 +28,7 @@ public class Portfolio {
     private final boolean replacement;
     private boolean deleted;
     private LocalDateTime deletedAt;
+    private List<String> summaryBullets;
 
     @Builder(access = AccessLevel.PRIVATE)
     private Portfolio(
@@ -42,7 +44,8 @@ public class Portfolio {
             LocalDateTime uploadedAt,
             boolean replacement,
             boolean deleted,
-            LocalDateTime deletedAt
+            LocalDateTime deletedAt,
+            List<String> summaryBullets
     ) {
         this.id = id;
         this.userId = userId;
@@ -57,6 +60,12 @@ public class Portfolio {
         this.replacement = replacement;
         this.deleted = deleted;
         this.deletedAt = deletedAt;
+        this.summaryBullets = copyOrEmpty(summaryBullets);
+    }
+
+    // null·외부 참조 노출 방지를 한 곳에서 보장한다 — 생성자와 updateSummaryBullets가 함께 쓴다.
+    private static List<String> copyOrEmpty(List<String> summaryBullets) {
+        return summaryBullets == null ? List.of() : List.copyOf(summaryBullets);
     }
 
     public static Portfolio create(UUID id, UUID userId, String fileName, long fileSize, int pageCount, String s3Key, boolean replacement) {
@@ -72,6 +81,7 @@ public class Portfolio {
                 .createdAt(LocalDateTime.now())
                 .replacement(replacement)
                 .deleted(false)
+                .summaryBullets(List.of())
                 .build();
     }
 
@@ -88,7 +98,8 @@ public class Portfolio {
             LocalDateTime uploadedAt,
             boolean replacement,
             boolean deleted,
-            LocalDateTime deletedAt
+            LocalDateTime deletedAt,
+            List<String> summaryBullets
     ) {
         return Portfolio.builder()
                 .id(id)
@@ -104,6 +115,7 @@ public class Portfolio {
                 .replacement(replacement)
                 .deleted(deleted)
                 .deletedAt(deletedAt)
+                .summaryBullets(summaryBullets)
                 .build();
     }
 
@@ -125,6 +137,12 @@ public class Portfolio {
     public void failSystem(String message) {
         this.status = PortfolioStatus.FAILED_SYSTEM;
         this.message = message;
+    }
+
+    // 상태 전환과 독립적으로 호출 가능하다 — 요약 생성 실패가 READY 전환을 막지 않고,
+    // 요약 성공도 status를 바꾸지 않는다(HLT-11).
+    public void updateSummaryBullets(List<String> summaryBullets) {
+        this.summaryBullets = copyOrEmpty(summaryBullets);
     }
 
     public boolean isFailed() {
